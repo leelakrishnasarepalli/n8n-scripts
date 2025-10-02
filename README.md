@@ -1,0 +1,1 @@
+job reply - This n8n workflow monitors Gmail every minute for new emails, uses AI to determine if they're job opportunities, then auto-generates and sends personalized replies highlighting Leela's experience, certifications, and contact details. It also sends notification emails about detected job opportunities before replying.
