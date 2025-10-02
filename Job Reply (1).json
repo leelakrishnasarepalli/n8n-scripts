@@ -1,0 +1,363 @@
+{
+  "name": "Job Reply",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1344,
+        784
+      ],
+      "id": "0df8cd03-42d4-4056-ae24-966cef909b61",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2MOpWNXfDNtktDcM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "edecf47b-794f-43ac-a369-30ef3af9102c",
+              "name": "email context",
+              "value": "=from: {{ $json.headers.from }}\n\nsubject: {{ $json.headers.subject }}\n\nemail body: {{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1136,
+        784
+      ],
+      "id": "3c3ecf7b-b71f-4d38-bb68-55e8355f56f6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=**Role**\nYour task is to determine whether an email is related to job opportunity or not.\n\nRespond with a JSON object containing the following fields:\n- **isJobOpportunity:** can be either `\"true\"` or `\"false\"`.\n- **reasoning:** Explain your answer.\nThink step by step about your response.\n\n{{ $json['email context'] }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -944,
+        784
+      ],
+      "id": "631e6697-726b-46aa-b84a-9f302e1d9163",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1040,
+        1056
+      ],
+      "id": "e88a32b4-4ed3-4828-af9e-7da34d6a6acc",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5GjqbfKW9YX2R414",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"isJobOpportunity\": \"true\",\n\t\"reasoning\": \"Offer to join our team\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -736,
+        1024
+      ],
+      "id": "ef4452a5-d9d8-4f88-814a-dd75a07b938c",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4957af2a-5d59-4e40-9aaa-cf849872047f",
+              "leftValue": "={{ $('AI Agent').item.json.output.isJobOpportunity }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -400,
+        784
+      ],
+      "id": "6d2a0a06-a8c6-4ae6-b800-e09ca8f386a3",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        960
+      ],
+      "id": "5068563c-f8eb-4d9a-9b6f-5fc4466b399f",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "message": "={{ $json.message.content }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Leela Krishna Sarepalli",
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        704
+      ],
+      "id": "30702efa-9aa8-42ec-884f-fb5c21466126",
+      "name": "Reply to a message",
+      "webhookId": "4cd7d7d9-ccfc-46cc-9322-eae98be4b1bc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2MOpWNXfDNtktDcM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=**Role:**\nYou work for a professional software engineer named \"Leela Krishna Sarepalli\"\nYour task is to respond to job opportunity by drafting a reply email.\n\n**Task:**\nCarefully review the email context below and write a friendly and professional email. \nReturn only the **email body in HTML format**\n- do **not** include a header, only the body!\nThe email should include high level information about Leela's experience, education, tools, ceritifcations and additional information where matched with email information from recruiter. \nClearly provide my phone number 506-566-8442 and email address leela.sarepalli@gmail.com\nDo not include any other phone numberand email address\n\n**Conditions:**\n# reply to email\nAlways provide links to my linkedin, personal website and resume.\nIf asked about availability, provide weekdays anytime between 12 noon and 3 pm.\nIf asked about visa or work permit in canada status, answer saying Permanent Resident of Canada and soon to be Canadian Citizen.\nIf asked about joining date, provide within 1 or 2 weeks.\nIf asked about relocation, say I am available to relocate anywhere in Canada and currently living in Waterloo-Kitchener, Ontario.\n\n## about Leela\n- **Experience:** \nProvide from the list based on job description or requirement. Quality analyst, Software engineer and QA Lead can be interchangeably used based on job opportunity. Similarly, business analyst, project manager, content manager and Lead software engineer can be interchangeably used based on job opportunity.\n\nContent Manager, Volunteer\tFeb 2025 – Till Date\nPMILOC, Mississauga\nBusiness Analyst, Volunteer\tOct 2024 – Nov 2024\nYWCA, Kitchener-Waterloo\nLead Software Engineer\tJul 2018 - Jul 2021\nImplithoughts IT solutions (Full-time)\nSenior Quality Analyst\tMay 2013 - Jun 2018\nUnitedHealth Group (Full-time)\nQuality Analyst\tJun 2009 - Apr 2013\nBroadridge Financial Solutions (Full-time)\n\n- **Education:** \nProvide from the list based on job description or requirement.\nUniversity of New Brunswick, Fredericton, New Brunswick\t    Sep 2021 - Aug 2023\nMaster of Business Administration | Project Management & Business Analysis\nAcharya Nagarjuna University, India\t    Sep 2006 - May 2009\nMaster of Computer Applications | Programming & SDLC\n\n- **Tools:** \nProvide from the list based on job description or requirement. Add any tools that are similar and present awareness about it.\nLow-code/No-code Platforms: Power Apps, Power BI, Figma, Power Automate, UiPath\nProject Management Tools: Microsoft Visio, JIRA, Zoho, Rally, GitHub\nMethodologies: Agile (Scrum, Kanban), Waterfall, SDLC, Hybrid Models\nCloud technologies & DevOps: AWS Cloud, Jenkins for CI/CD, Azure DevOps\nTesting & Quality Assurance: Selenium, TestNG, Cucumber (Java), BDD framework (Specflow), QTP / UFT One, AXE for accessibility testing, ISTQB standards, debugging and troubleshooting IT applications\nProgramming Languages: C#, Java, Python, SQL, PLSQL, Java Script, DAX\n\n- **Certifications:**\nProvide from the list based on job description or requirement.\nMicrosoft Power Up Program: Certified Graduate Microsoft Power Up Program \tMar 2025\nMicrosoft Certified: Power Platform Fundamentals\tFeb 2025\nPMI Certified: Citizen Developer Practitioner\tFeb 2025\nIIBA Certified: Business Analysis Professional (CBAP 112949746)\tAug 2024\nCertified SAFe 6 Product Owner / Product Manager\tJan 2024\nAWS Certified: Solutions Architect - Associate\tDec 2023\nMicrosoft Certified: Azure Fundamentals\tDec 2023\nPMI Certified: Project Management Professional (PMP 3392096)\tDec 2022\nFoundation Level Software Testing (ISTQB)\tSep 2020\nScrum.org Certified: Professional Scrum Master™ I (PSM I)\tMay 2020\n\n### interested in roles\n- Contract or part time or full time\n- In ontario, Canada or Anywhere in Canada\n- Healthcare, Finance, Technology\n- Similar roles as Business Analyst, Project Manager, Business Consultant, Product Manager, Data Analyst\n\n#### **Additional information**\nAlways include below links and attach resume\n- **Personal website**\nhttps://www.leelakrishna.online/\n- **Linkedin Profile**\nhttps://www.linkedin.com/in/leelakrishnasarepalli/\n- **Resume:** https://docs.google.com/document/d/1m7C2wVJ8oSUByyNamLnrtdyXvULX_flD/edit?usp=sharing&ouid=107044075982514110152&rtpof=true&sd=true\n",
+              "role": "system"
+            },
+            {
+              "content": "=Email Context: {{ $('Edit Fields').item.json['email context'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -176,
+        704
+      ],
+      "id": "0a13cba2-cf97-4833-811b-762b4422ce44",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5GjqbfKW9YX2R414",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c8e76e16-4e06-4780-8940-d650526abfc1",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "sendTo": "leelakrishna.sarepalli@gmail.com",
+        "subject": "n8n Triggers",
+        "message": "=from : {{ $('Gmail Trigger').item.json.from.value[0].name }}\n{{ $('Gmail Trigger').item.json.from.value[0].address }}\n\nto : {{ $('Gmail Trigger').item.json.to.value[0].name }}\n{{ $('Gmail Trigger').item.json.to.value[0].address }}\n\nsubject: {{ $('Gmail Trigger').item.json.subject }}\n\nreasoning : {{ $json.output.reasoning }}\n\nbody : {{ $('Gmail Trigger').item.json.text }}\n",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Leela Krishna Sarepalli",
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -608,
+        784
+      ],
+      "id": "51ad13d4-41e9-4d2f-9c0f-c5948ce0a51a",
+      "name": "Send a message",
+      "webhookId": "0c1196cb-4592-43cc-934e-0f5eaf4183b4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2MOpWNXfDNtktDcM",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7dc33baf-aec8-4c29-8b97-8d2397e39e7c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04fb6882a3e697d95708b07736c2c8ee26422651925068c52f8f555a786adf45"
+  },
+  "id": "pDKqnmcHP5uCcytK",
+  "tags": []
+}
