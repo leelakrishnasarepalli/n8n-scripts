@@ -1,5 +1,8 @@
 job reply - This n8n workflow monitors Gmail every minute for new emails, uses AI to determine if they're job opportunities, then auto-generates and sends personalized replies highlighting Leela's experience, certifications, and contact details. It also sends notification emails about detected job opportunities before replying.
+
 <img width="1600" height="558" alt="image" src="https://github.com/user-attachments/assets/1511f920-b617-4143-9bcd-0df13f2d0164" />
+
+<img width="2174" height="1646" alt="image" src="https://github.com/user-attachments/assets/b8d8468f-0737-4729-bc05-292c1bf71df7" />
 
 Here's the technical workflow breakdown:
 1. Gmail Trigger Node
